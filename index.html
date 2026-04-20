@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orega - Engineers Solving Real Problems</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        orega: {
+                            blue: '#00BFFF',
+                            navy: '#0A2540',
+                            light: '#60A5FA',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .page-section { display: none; opacity: 0; transition: opacity 0.3s ease-in-out; }
+        .page-section.active { display: block; opacity: 1; }
+        .nav-link.active { color: #00BFFF; }
+        .dark .nav-link.active { color: #60A5FA; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        .dark ::-webkit-scrollbar-track { background: #0A2540; }
+        ::-webkit-scrollbar-thumb { background: #00BFFF; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0A2540; }
+        
+        /* Toast Notification */
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #10B981; color: #fff;
+            text-align: center; border-radius: 8px; padding: 16px; position: fixed;
+            z-index: 1000; left: 50%; bottom: 30px; font-size: 16px; transform: translateX(-50%);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        #toast.show {
+            visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+    </style>
+</head>
+<body class="bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
+
+    <!-- Navbar -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <a href="#home" onclick="navigate('home')" class="flex items-center gap-2 cursor-pointer">
+                    <img src="./Assets/Logo.png" alt="Orega Logo" class="h-10 w-auto dark:hidden" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
+                    <!-- Fallback if logo not found -->
+                    <div class="hidden flex items-center gap-2">
+                        <i data-lucide="settings" class="w-8 h-8 text-orega-blue"></i>
+                        <span class="font-bold text-2xl tracking-tight text-orega-navy dark:text-white">OREGA</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#home" onclick="navigate('home')" class="nav-link font-medium hover:text-orega-blue transition-colors">Home</a>
+                    <a href="#about" onclick="navigate('about')" class="nav-link font-medium hover:text-orega-blue transition-colors">About</a>
+                    <a href="#services" onclick="navigate('services')" class="nav-link font-medium hover:text-orega-blue transition-colors">Services</a>
+                    <a href="#projects" onclick="navigate('projects')" class="nav-link font-medium hover:text-orega-blue transition-colors">Projects</a>
+                    <a href="#blog" onclick="navigate('blog')" class="nav-link font-medium hover:text-orega-blue transition-colors">Blog</a>
+                    <a href="#contact" onclick="navigate('contact')" class="nav-link font-medium hover:text-orega-blue transition-colors">Contact</a>
+                    
+                    <div class="flex items-center space-x-4">
+                        <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Toggle Dark Mode">
+                            <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+                            <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                        </button>
+                        <button onclick="navigate('submit')" class="bg-orega-blue hover:bg-blue-500 text-white px-6 py-2 rounded-md font-medium shadow-lg shadow-orega-blue/30 transition-all hover:-translate-y-0.5">
+                            Submit Request
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center gap-4">
+                    <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+                        <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                    </button>
+                    <button onclick="toggleMobileMenu()" class="text-gray-900 dark:text-gray-100 hover:text-orega-blue focus:outline-none p-2">
+                        <i data-lucide="menu" id="menu-icon" class="h-6 w-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#home" onclick="navigate('home'); toggleMobileMenu()" class="nav-link block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-50 dark:hover:bg-gray-800">Home</a>
+                <a href="#about" onclick="navigate('about'); toggleMobileMenu()" class="nav-link block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-50 dark:hover:bg-gray-800">About</a>
+                <a href="#services" onclick="navigate('services'); toggleMobileMenu()" class="nav-link block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-50 dark:hover:bg-gray-800">Services</a>
+                <a href="#projects" onclick="navigate('projects'); toggleMobileMenu()" class="nav-link block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-50 dark:hover:bg-gray-800">Projects</a>
+                <a href="#blog" onclick="navigate('blog'); toggleMobileMenu()" class="nav-link block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-50 dark:hover:bg-gray-800">Blog</a>
+                <a href="#contact" onclick="navigate('contact'); toggleMobileMenu()" class="nav-link block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-50 dark:hover:bg-gray-800">Contact</a>
+                <button onclick="navigate('submit'); toggleMobileMenu()" class="w-full text-left bg-orega-blue hover:bg-blue-500 text-white block px-3 py-2 rounded-md text-base font-medium mt-4">
+                    Submit Request
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="pt-20 min-h-screen">
+
+        <!-- ================= HOME PAGE ================= -->
+        <section id="home" class="page-section active">
+            <!-- Hero -->
+            <div class="relative bg-gray-50 dark:bg-gray-900 overflow-hidden py-24 sm:py-32">
+                <div class="absolute inset-0 z-0">
+                    <div class="absolute -top-24 -right-24 w-96 h-96 bg-orega-blue rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+                </div>
+                <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-8">
+                        <div class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold text-orega-blue bg-orega-blue/10 border border-orega-blue/20">
+                            <i data-lucide="zap" class="mr-2 h-4 w-4"></i> Innovation meets Engineering
+                        </div>
+                        <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
+                            Engineers Solving <br/>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-orega-blue to-orega-navy dark:to-orega-light">Real Problems</span>
+                        </h1>
+                        <p class="text-lg text-gray-600 dark:text-gray-300 max-w-xl">
+                            Submit your challenge. We engineer the solution. From custom prototyping to automation systems, we turn complex problems into elegant technical realities.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button onclick="navigate('submit')" class="bg-orega-blue hover:bg-blue-500 text-white px-8 py-4 rounded-md font-semibold text-lg flex justify-center items-center shadow-lg shadow-orega-blue/30 transition-transform hover:-translate-y-1">
+                                Submit a Request <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+                            </button>
+                            <button onclick="navigate('projects')" class="bg-transparent border-2 border-gray-300 dark:border-gray-700 hover:border-orega-navy hover:text-orega-navy dark:hover:border-white dark:hover:text-white px-8 py-4 rounded-md font-semibold text-lg flex justify-center items-center transition-colors">
+                                See Our Work
+                            </button>
+                        </div>
+                    </div>
+                    <div class="hidden md:flex justify-center relative">
+                        <i data-lucide="settings" class="w-64 h-64 text-orega-blue/20 animate-[spin_20s_linear_infinite]"></i>
+                        <i data-lucide="cpu" class="w-32 h-32 text-orega-navy dark:text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="bg-orega-navy py-12">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-white/10">
+                        <div>
+                            <p class="text-4xl font-bold text-orega-blue mb-2">150+</p>
+                            <p class="text-white/80 font-medium">Projects Delivered</p>
+                        </div>
+                        <div>
+                            <p class="text-4xl font-bold text-orega-blue mb-2">98%</p>
+                            <p class="text-white/80 font-medium">Client Success</p>
+                        </div>
+                        <div>
+                            <p class="text-4xl font-bold text-orega-blue mb-2">24/7</p>
+                            <p class="text-white/80 font-medium">Support</p>
+                        </div>
+                        <div>
+                            <p class="text-4xl font-bold text-orega-blue mb-2">50+</p>
+                            <p class="text-white/80 font-medium">Experts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Projects Preview -->
+            <div class="py-24 bg-white dark:bg-gray-900">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center mb-16">
+                        <h2 class="text-3xl md:text-5xl font-bold mb-4">Featured Projects</h2>
+                        <p class="text-gray-600 dark:text-gray-400 text-lg">Discover how we've engineered solutions across sectors.</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-8 mb-12">
+                        <!-- Project Card 1 -->
+                        <div class="group cursor-pointer relative rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 shadow-md">
+                            <img src="https://images.unsplash.com/photo-1563207038-f91cb1fdb89a?q=80&w=600&auto=format&fit=crop" class="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105" alt="Project 1">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8">
+                                <p class="text-orega-blue font-semibold">Industrial Automation</p>
+                                <h3 class="text-2xl font-bold text-white group-hover:text-orega-light transition-colors">Automated Assembly Line</h3>
+                            </div>
+                        </div>
+                        <!-- Project Card 2 -->
+                        <div class="group cursor-pointer relative rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 shadow-md">
+                            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop" class="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105" alt="Project 2">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8">
+                                <p class="text-orega-blue font-semibold">IoT Systems</p>
+                                <h3 class="text-2xl font-bold text-white group-hover:text-orega-light transition-colors">Smart City Network</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button onclick="navigate('projects')" class="bg-gray-900 text-white dark:bg-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200 px-8 py-3 rounded-md font-medium transition-colors">
+                            View All Projects
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Newsletter -->
+            <div class="bg-gray-50 dark:bg-gray-800 py-24">
+                <div class="max-w-4xl mx-auto px-4 text-center">
+                    <h2 class="text-3xl font-bold mb-4">Stay Updated</h2>
+                    <p class="text-gray-600 dark:text-gray-400 mb-8">Subscribe to our engineering newsletter for case studies and insights.</p>
+                    <form onsubmit="handleNewsletter(event)" class="flex flex-col sm:flex-row gap-4 max-w-xl mx-auto">
+                        <input type="email" required placeholder="Enter your email" class="flex-1 px-6 py-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-orega-blue">
+                        <button type="submit" class="bg-orega-navy hover:bg-opacity-90 text-white px-8 py-4 rounded-xl font-medium transition-colors">
+                            Subscribe
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= ABOUT PAGE ================= -->
+        <section id="about" class="page-section">
+            <div class="bg-orega-navy py-20 relative overflow-hidden text-white">
+                <i data-lucide="settings" class="absolute -top-10 -right-20 w-[600px] h-[600px] text-white opacity-5 animate-[spin_60s_linear_infinite]"></i>
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+                    <h1 class="text-4xl md:text-6xl font-bold mb-6">About Orega</h1>
+                    <p class="text-xl text-white/80 max-w-3xl mx-auto">Bridging the gap between theoretical engineering and practical application.</p>
+                </div>
+            </div>
+            <div class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid md:grid-cols-2 gap-16 items-center mb-24">
+                    <div>
+                        <h2 class="text-3xl font-bold text-orega-blue mb-2">Our Mission</h2>
+                        <h3 class="text-2xl font-bold mb-6">Engineering a Better Tomorrow</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4 text-lg">Founded on the principle that no problem is too complex, Orega provides holistic solutions that drive efficiency and innovation.</p>
+                        <p class="text-gray-600 dark:text-gray-400 text-lg">Our multidisciplinary team brings together expertise from mechanical, electrical, and software engineering to construct robust systems.</p>
+                    </div>
+                    <div class="rounded-2xl overflow-hidden shadow-xl">
+                        <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=800&auto=format&fit=crop" class="w-full object-cover" alt="Engineers at work">
+                    </div>
+                </div>
+
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl font-bold mb-4">Core Values</h2>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8 mb-24">
+                    <div class="text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+                        <i data-lucide="target" class="w-12 h-12 text-orega-blue mx-auto mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Precision</h3>
+                        <p class="text-gray-600 dark:text-gray-400">Exactness in every design and implementation.</p>
+                    </div>
+                    <div class="text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+                        <i data-lucide="zap" class="w-12 h-12 text-orega-blue mx-auto mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Innovation</h3>
+                        <p class="text-gray-600 dark:text-gray-400">Pushing boundaries of what is technically possible.</p>
+                    </div>
+                    <div class="text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+                        <i data-lucide="shield-check" class="w-12 h-12 text-orega-blue mx-auto mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Reliability</h3>
+                        <p class="text-gray-600 dark:text-gray-400">Building systems that stand the test of time.</p>
+                    </div>
+                </div>
+
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl font-bold mb-4">Meet the Team</h2>
+                </div>
+                <!-- Team Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    <!-- Member 1 -->
+                    <div class="text-center">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Alan" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-lg">
+                        <h4 class="font-bold text-lg">Dr. Alan Turing</h4>
+                        <p class="text-orega-blue">Chief Engineer</p>
+                    </div>
+                    <div class="text-center">
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Sarah" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-lg">
+                        <h4 class="font-bold text-lg">Sarah Connor</h4>
+                        <p class="text-orega-blue">Systems Architect</p>
+                    </div>
+                    <div class="text-center">
+                        <img src="https://randomuser.me/api/portraits/men/62.jpg" alt="James" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-lg">
+                        <h4 class="font-bold text-lg">James Webb</h4>
+                        <p class="text-orega-blue">Hardware Lead</p>
+                    </div>
+                    <div class="text-center">
+                        <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Ada" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-lg">
+                        <h4 class="font-bold text-lg">Ada Lovelace</h4>
+                        <p class="text-orega-blue">Software Director</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SERVICES PAGE ================= -->
+        <section id="services" class="page-section">
+            <div class="bg-gray-50 dark:bg-gray-900 py-20 border-b border-gray-200 dark:border-gray-800">
+                <div class="max-w-7xl mx-auto px-4 text-center">
+                    <h1 class="text-4xl md:text-6xl font-bold mb-6">Our Services</h1>
+                    <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Comprehensive expertise driving industry transformation.</p>
+                </div>
+            </div>
+            
+            <div class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Service 1 -->
+                    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-orega-blue transition-colors flex flex-col h-full">
+                        <div class="w-14 h-14 bg-orega-blue/10 rounded-lg flex items-center justify-center text-orega-blue mb-6">
+                            <i data-lucide="wrench" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">Custom Engineering</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-8 flex-1">Tailored engineering solutions designed for your unique operational requirements.</p>
+                        <button onclick="navigate('submit'); setTimeout(()=>document.getElementById('category').value='custom', 100)" class="w-full py-3 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-orega-blue hover:text-white transition-colors font-medium">Request Service</button>
+                    </div>
+                    <!-- Service 2 -->
+                    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-orega-blue transition-colors flex flex-col h-full">
+                        <div class="w-14 h-14 bg-orega-blue/10 rounded-lg flex items-center justify-center text-orega-blue mb-6">
+                            <i data-lucide="lightbulb" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">Problem Solving</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-8 flex-1">Advanced diagnostic and analytical services to fix root causes permanently.</p>
+                        <button onclick="navigate('submit')" class="w-full py-3 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-orega-blue hover:text-white transition-colors font-medium">Request Service</button>
+                    </div>
+                    <!-- Service 3 -->
+                    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-orega-blue transition-colors flex flex-col h-full">
+                        <div class="w-14 h-14 bg-orega-blue/10 rounded-lg flex items-center justify-center text-orega-blue mb-6">
+                            <i data-lucide="cpu" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">Prototyping</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-8 flex-1">Rapid development of functional prototypes from concept to physical model.</p>
+                        <button onclick="navigate('submit')" class="w-full py-3 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-orega-blue hover:text-white transition-colors font-medium">Request Service</button>
+                    </div>
+                    <!-- Service 4 -->
+                    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-orega-blue transition-colors flex flex-col h-full">
+                        <div class="w-14 h-14 bg-orega-blue/10 rounded-lg flex items-center justify-center text-orega-blue mb-6">
+                            <i data-lucide="wifi" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">IoT Solutions</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-8 flex-1">Connected device networks, sensors, and data gathering endpoints.</p>
+                        <button onclick="navigate('submit')" class="w-full py-3 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-orega-blue hover:text-white transition-colors font-medium">Request Service</button>
+                    </div>
+                    <!-- Service 5 -->
+                    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-orega-blue transition-colors flex flex-col h-full">
+                        <div class="w-14 h-14 bg-orega-blue/10 rounded-lg flex items-center justify-center text-orega-blue mb-6">
+                            <i data-lucide="repeat-2" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">Automation</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-8 flex-1">Streamlining processes via PLCs, robotics, and custom software pipelines.</p>
+                        <button onclick="navigate('submit')" class="w-full py-3 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-orega-blue hover:text-white transition-colors font-medium">Request Service</button>
+                    </div>
+                    <!-- Service 6 -->
+                    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-orega-blue transition-colors flex flex-col h-full">
+                        <div class="w-14 h-14 bg-orega-blue/10 rounded-lg flex items-center justify-center text-orega-blue mb-6">
+                            <i data-lucide="users" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">Community Auth</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-8 flex-1">Technical training and knowledge sharing sessions for professionals.</p>
+                        <button onclick="navigate('submit')" class="w-full py-3 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-orega-blue hover:text-white transition-colors font-medium">Request Service</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PROJECTS PAGE ================= -->
+        <section id="projects" class="page-section">
+            <div class="py-20 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+                <div class="max-w-7xl mx-auto px-4 text-center">
+                    <h1 class="text-4xl md:text-6xl font-bold mb-6">Our Work</h1>
+                    <p class="text-xl text-gray-600 dark:text-gray-400">Discover our portfolio of engineered perfection.</p>
+                </div>
+            </div>
+            <div class="py-16 max-w-7xl mx-auto px-4">
+                <div class="flex flex-wrap justify-center gap-4 mb-12">
+                    <button class="px-6 py-2 rounded-full bg-orega-navy text-white font-medium">All</button>
+                    <button class="px-6 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 font-medium hover:bg-gray-50 dark:hover:bg-gray-700">Tech</button>
+                    <button class="px-6 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 font-medium hover:bg-gray-50 dark:hover:bg-gray-700">Business</button>
+                    <button class="px-6 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 font-medium hover:bg-gray-50 dark:hover:bg-gray-700">Community</button>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Repeater for projects -->
+                    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm group">
+                        <div class="aspect-[4/3] overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1563207038-f91cb1fdb89a?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="img">
+                            <span class="absolute top-4 left-4 bg-white/90 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">Tech</span>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">Automated Assembly Line</h3>
+                            <p class="text-sm text-orega-blue font-semibold mb-4">MegaCorp</p>
+                            <button class="w-full py-2 border border-gray-300 dark:border-gray-600 rounded-md font-medium group-hover:bg-orega-navy group-hover:text-white transition-colors">Case Study</button>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm group">
+                        <div class="aspect-[4/3] overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1558002038-1055907df827?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="img">
+                            <span class="absolute top-4 left-4 bg-white/90 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">Home</span>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">Smart Home HQ</h3>
+                            <p class="text-sm text-orega-blue font-semibold mb-4">Residential</p>
+                            <button class="w-full py-2 border border-gray-300 dark:border-gray-600 rounded-md font-medium group-hover:bg-orega-navy group-hover:text-white transition-colors">Case Study</button>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm group">
+                        <div class="aspect-[4/3] overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="img">
+                            <span class="absolute top-4 left-4 bg-white/90 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">Business</span>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">Supply Chain IoT</h3>
+                            <p class="text-sm text-orega-blue font-semibold mb-4">GlobalLogistics</p>
+                            <button class="w-full py-2 border border-gray-300 dark:border-gray-600 rounded-md font-medium group-hover:bg-orega-navy group-hover:text-white transition-colors">Case Study</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SUBMIT REQUEST PAGE ================= -->
+        <section id="submit" class="page-section">
+            <div class="py-20 bg-gray-50 dark:bg-gray-900 min-h-screen">
+                <div class="max-w-3xl mx-auto px-4">
+                    <div class="text-center mb-12">
+                        <h1 class="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-orega-blue to-orega-navy dark:to-orega-light">Submit Your Challenge</h1>
+                        <p class="text-gray-600 dark:text-gray-400 text-xl">Provide the details of your technical requirement.</p>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 p-8 md:p-12 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700">
+                        <form id="submitForm" onsubmit="handleSubmitRequest(event)" class="space-y-6">
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Full Name *</label>
+                                    <input required type="text" class="w-full px-4 py-3 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-orega-blue outline-none" placeholder="John Doe">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Email *</label>
+                                    <input required type="email" class="w-full px-4 py-3 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-orega-blue outline-none" placeholder="john@example.com">
+                                </div>
+                            </div>
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Phone</label>
+                                    <input type="tel" class="w-full px-4 py-3 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-orega-blue outline-none" placeholder="+1234567890">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Category *</label>
+                                    <select required id="category" class="w-full px-4 py-3 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-orega-blue outline-none">
+                                        <option value="" disabled selected>Select category</option>
+                                        <option value="custom">Custom Engineering</option>
+                                        <option value="iot">IoT</option>
+                                        <option value="automation">Automation</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Detailed Description *</label>
+                                <textarea required rows="5" class="w-full px-4 py-3 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-orega-blue outline-none resize-y" placeholder="Describe your challenge..."></textarea>
+                            </div>
+                            <button type="submit" id="submitBtn" class="w-full bg-orega-blue hover:bg-blue-500 text-white font-bold py-4 rounded-md transition-colors flex justify-center items-center gap-2">
+                                Submit Challenge <i data-lucide="send" class="w-5 h-5"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= BLOG PAGE ================= -->
+        <section id="blog" class="page-section">
+            <div class="py-20 max-w-5xl mx-auto px-4">
+                <h1 class="text-4xl md:text-5xl font-bold mb-12 text-center">Engineering Insights</h1>
+                <div class="space-y-8">
+                    <div class="flex flex-col md:flex-row bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700">
+                        <img src="https://images.unsplash.com/photo-1563207038-f91cb1fdb89a?q=80&w=600&auto=format&fit=crop" class="md:w-1/3 object-cover h-64 md:h-auto" alt="blog1">
+                        <div class="p-8 flex flex-col justify-center">
+                            <span class="text-xs font-bold text-orega-blue uppercase tracking-wider mb-2">Automation</span>
+                            <h3 class="text-2xl font-bold mb-3 cursor-pointer hover:text-orega-blue transition-colors">The Future of Industrial Automation</h3>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">Exploring how AI-driven robotics and advanced PLCs are transforming the factory floor.</p>
+                            <a href="#" class="text-orega-blue font-semibold flex items-center">Read Article <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= CONTACT PAGE ================= -->
+        <section id="contact" class="page-section">
+            <div class="py-24 max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-16">
+                <div>
+                    <h1 class="text-4xl font-bold mb-8">Contact Us</h1>
+                    <div class="space-y-6">
+                        <div class="flex gap-4"><i data-lucide="map-pin" class="text-orega-blue w-6 h-6"></i><p>123 Innovation Drive, Mysuru, India</p></div>
+                        <div class="flex gap-4"><i data-lucide="phone" class="text-orega-blue w-6 h-6"></i><p>+91 98765 43210</p></div>
+                        <div class="flex gap-4"><i data-lucide="mail" class="text-orega-blue w-6 h-6"></i><p>contact@orega.in</p></div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700">
+                    <form onsubmit="handleContact(event)" class="space-y-4">
+                        <input required type="text" placeholder="Name" class="w-full p-3 rounded border dark:bg-gray-700 dark:border-gray-600">
+                        <input required type="email" placeholder="Email" class="w-full p-3 rounded border dark:bg-gray-700 dark:border-gray-600">
+                        <textarea required rows="4" placeholder="Message" class="w-full p-3 rounded border dark:bg-gray-700 dark:border-gray-600"></textarea>
+                        <button type="submit" class="w-full bg-orega-navy text-white p-4 rounded font-bold hover:bg-opacity-90">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-orega-navy text-white pt-16 pb-8 border-t border-white/10 mt-auto">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8 mb-12">
+                <div>
+                    <h2 class="text-2xl font-bold mb-4 tracking-wider">OREGA</h2>
+                    <p class="text-white/60 text-sm">Engineers Solving Real Problems. We deliver innovative solutions, custom prototyping, and automation.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-white/60 text-sm">
+                        <li><a href="#about" onclick="navigate('about')" class="hover:text-white">About Us</a></li>
+                        <li><a href="#services" onclick="navigate('services')" class="hover:text-white">Services</a></li>
+                        <li><a href="#contact" onclick="navigate('contact')" class="hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold mb-4">Services</h3>
+                    <ul class="space-y-2 text-white/60 text-sm">
+                        <li><a href="#services" onclick="navigate('services')" class="hover:text-white">Custom Engineering</a></li>
+                        <li><a href="#services" onclick="navigate('services')" class="hover:text-white">Prototyping</a></li>
+                        <li><a href="#services" onclick="navigate('services')" class="hover:text-white">Automation</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold mb-4">Contact</h3>
+                    <ul class="space-y-2 text-white/60 text-sm">
+                        <li>Mysuru, Karnataka, India</li>
+                        <li>+91 98765 43210</li>
+                        <li>contact@orega.in</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-white/10 pt-8 text-center text-white/40 text-sm">
+                &copy; 2026 Orega Engineering. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Component -->
+    <div id="toast">Success! Action completed.</div>
+
+    <!-- Scripts -->
+    <script>
+        // Init Lucide Icons
+        lucide.createIcons();
+
+        // Single Page App Router Logic
+        function navigate(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page-section').forEach(el => {
+                el.classList.remove('active');
+            });
+            // Show target page
+            const target = document.getElementById(pageId);
+            if(target) target.classList.add('active');
+
+            // Update nav active states
+            document.querySelectorAll('.nav-link').forEach(el => {
+                el.classList.remove('active');
+                if(el.getAttribute('href') === `#${pageId}`) {
+                    el.classList.add('active');
+                }
+            });
+            window.scrollTo(0, 0);
+        }
+
+        // Initialize from URL Hash or default to home
+        window.onload = () => {
+            const hash = window.location.hash.replace('#', '') || 'home';
+            navigate(hash);
+            
+            // Apply theme on load
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark')
+            } else {
+                document.documentElement.classList.remove('dark')
+            }
+        };
+
+        // Dark mode toggle
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            if(document.documentElement.classList.contains('dark')) {
+                localStorage.theme = 'dark';
+            } else {
+                localStorage.theme = 'light';
+            }
+        }
+
+        // Mobile Menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            if(menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                // Change icon manually if needed, lucide icons are static SVG replacements
+            } else {
+                menu.classList.add('hidden');
+            }
+        }
+
+        // Toast Notification
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.className = "show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // Forms Handlers
+        function handleNewsletter(e) {
+            e.preventDefault();
+            showToast("Successfully subscribed to newsletter!");
+            e.target.reset();
+        }
+
+        function handleContact(e) {
+            e.preventDefault();
+            showToast("Message sent successfully!");
+            e.target.reset();
+        }
+
+        function handleSubmitRequest(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Submitting...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                showToast("Request submitted successfully!");
+                e.target.reset();
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                navigate('home');
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
